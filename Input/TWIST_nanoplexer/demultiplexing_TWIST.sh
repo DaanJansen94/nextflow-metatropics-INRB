@@ -129,41 +129,56 @@ create_dual_barcode_file() {
     echo "dual_barcode_TWIST.txt file has been created successfully in the ${nanoplexer_input_dir} directory."
 }
 
-# Updated function to concatenate and decompress FASTQ.gz files with reduced output
+# Updated function to handle both .fastq.gz and .fastq files
 concatenate_fastq_files() {
     output_file="${input_dir}/allsamples.fastq"
     
-    echo "Concatenating and decompressing FASTQ.gz files..."
+    echo "Processing FASTQ files..."
     
-    # Check for .fastq.gz files
+    # Check for both .fastq.gz and .fastq files
     gz_files=("${fastq_pass_dir}"/*.fastq.gz)
+    fastq_files=("${fastq_pass_dir}"/*.fastq)
     gz_count=${#gz_files[@]}
+    fastq_count=${#fastq_files[@]}
     
-    if [ "$gz_count" -gt 0 ]; then
-        echo "Found $gz_count .fastq.gz files. Processing..."
+    # Remove output file if it exists
+    rm -f "$output_file"
+    
+    if [ "$gz_count" -gt 0 ] || [ "$fastq_count" -gt 0 ]; then
+        if [ "$gz_count" -gt 0 ]; then
+            echo "Found $gz_count .fastq.gz files. Processing..."
+            for file in "${gz_files[@]}"; do
+                gunzip -c "$file" >> "$output_file" 2>/dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Error processing file: $file"
+                fi
+            done
+        fi
         
-        # Use gunzip -c instead of zcat, with reduced output
-        for file in "${gz_files[@]}"; do
-            gunzip -c "$file" >> "$output_file" 2>/dev/null
-            if [ $? -ne 0 ]; then
-                echo "Error processing file: $file"
-            fi
-        done
+        if [ "$fastq_count" -gt 0 ]; then
+            echo "Found $fastq_count .fastq files. Processing..."
+            for file in "${fastq_files[@]}"; do
+                cat "$file" >> "$output_file" 2>/dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Error processing file: $file"
+                fi
+            done
+        fi
     else
-        echo "Error: No .fastq.gz files found in ${fastq_pass_dir}"
+        echo "Error: No .fastq.gz or .fastq files found in ${fastq_pass_dir}"
         exit 1
     fi
     
     if [ -s "$output_file" ]; then
-        echo "All FASTQ.gz files have been decompressed and concatenated into $output_file"
+        echo "All FASTQ files have been processed and concatenated into $output_file"
     else
-        echo "Error: Failed to concatenate FASTQ.gz files or no FASTQ.gz files found."
+        echo "Error: Failed to concatenate FASTQ files or no FASTQ files found."
         rm -f "$output_file"
         exit 1
     fi
 }
 
-# Updated function to run nanoplexer for demultiplexing with error handling
+# Function to run nanoplexer for demultiplexing with error handling
 run_nanoplexer() {
     input_file="${input_dir}/allsamples.fastq"
     barcode_file="${nanoplexer_input_dir}/barcodes.fa"
