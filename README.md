@@ -139,7 +139,7 @@ nextflow run nf-metatropics/ -profile docker -params-file params.yaml -resume
     --basecall                    [boolean] In case fast5 is the input, that option shoud be true [default: false]
     --model                       [string]  In case fast5 is the input, the guppy model for basecalling should be provide. [default:dna_r9.4.1_450bps_hac.cfg]
     --minLength                   [integer] Minimum length for a read to be analyzed. [default: 200]
-    --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.001]
+    --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.01]
     --usegpu                      [boolean] In case fast5 is the input, the use of GPU Nvidia should be true.
     --pair                        [boolean] If barcodes were added at both sides of a read (true) or only at one side (false).
     --quality                     [integer] Minimum quality for a base to build the consensus [default: 7]
